@@ -79,3 +79,21 @@ class LogoutView(APIView):
         return response
 
 
+class LikesView(APIView):
+
+    serializer_class = LikesSerializer
+    permission_classes = [permissions.IsAuthenticated,]
+
+    def get(self, request):
+        user = request.user
+        episode_id = request.data.get('episode_id')
+        like = Likes.objects.get(user=user, episode=episode_id)
+        if like:
+            like.delete()
+            return Response({'detail': 'Unliked'}, status=status.HTTP_204_NO_CONTENT)
+        if not like:
+            user = user.id
+            Likes.objects.create(user, episode_id)
+            return Response({'detail': 'Liked'}, status=status.HTTP_200_OK)
+
+
