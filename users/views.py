@@ -84,7 +84,7 @@ class LikesView(APIView):
     serializer_class = LikesSerializer
     permission_classes = [permissions.IsAuthenticated,]
 
-    def get(self, request):
+    def post(self, request):
         user = request.user
         episode_id = request.data.get('episode_id')
         like = Likes.objects.get(user=user, episode=episode_id)
