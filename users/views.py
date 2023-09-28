@@ -97,3 +97,14 @@ class LikesView(APIView):
             return Response({'detail': 'Liked'}, status=status.HTTP_200_OK)
 
 
+class CommentListCreateView(ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        episode_id = self.kwargs['episode_id']
+        return Comment.objects.filter(episode=episode_id)
+
+    def perform_create(self, serializer):
+        episode_id = self.kwargs['episode_id']
+        serializer.save(episode_id=episode_id)
