@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, Likes
+from .models import CustomUser, Likes, Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,3 +23,9 @@ class UserSerializer(serializers.ModelSerializer):
 class LikesSerializer(serializers.ModelSerializer):
     model = Likes
     fields = ['episode_id', 'user_id']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ('id', 'episode', 'user', 'text', 'created_at')
