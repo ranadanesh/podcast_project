@@ -17,4 +17,18 @@ class EpisodeListView(ListAPIView):
     serializer_class = RssSerializer
 
 
+class RssDetailView(APIView):
+
+    def get(self, request, pk):
+        rss = get_object_or_404(Rss, pk=pk)
+        serializer = RssSerializer(rss)
+        return Response(serializer.data)
+
+
+class EpisodeDetailView(APIView):
+
+    def get(self, request, pk):
+        episode = get_object_or_404(Episode, pk=pk)
+        serializer = EpisodeSerializer(episode)
+        return Response(serializer.data)
 
