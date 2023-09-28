@@ -20,4 +20,6 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-
+class LikesSerializer(serializers.ModelSerializer):
+    model = Likes
+    fields = ['episode_id', 'user_id']
