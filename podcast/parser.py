@@ -30,8 +30,7 @@ rss_key_dict = {
 }
 
 
-def parserview(request):
-    url = 'https://rss.art19.com/apology-line'
+def parserview(url):
     url = requests.get(url)
     xml_content = xmltodict.parse(url.content, encoding='utf-8')
 
@@ -50,6 +49,7 @@ def parserview(request):
     rss = Rss.objects.create(**rss_dict)
 
     episode_dict = {}
+    episode_list = []
 
     item_content = channel_content.get('item')
     for item in item_content:
@@ -58,4 +58,7 @@ def parserview(request):
         for k, v in episode_key_dict.items():
             episode_dict[k] = item[v]
 
-        episode = Episode.objects.create(**episode_dict, rss=rss)
+        episode = Episode(**episode_dict)
+        episode_list.append(episode)
+
+    Episode.objects.bulk_create(episode_list, ignore_conflicts=True)
