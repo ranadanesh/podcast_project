@@ -4,7 +4,6 @@ from django.db import models
 
 
 class Rss(models.Model):
-    name = models.CharField(max_length=200, unique=True)
     url = models.URLField()
     link = models.URLField()
     title = models.CharField(max_length=200)
@@ -20,7 +19,7 @@ class Rss(models.Model):
 
 class Episode(models.Model):
     rss = models.ForeignKey(Rss, on_delete=models.CASCADE)
-    guid = models.CharField(max_length=50)
+    guid = models.CharField(max_length=50, unique=True)
     enclosure = models.CharField(max_length=100, null=True, blank=True)
     title = models.CharField(max_length=200)
     duration = models.CharField(max_length=200, null=True, blank=True)
