@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from .serializers import RssSerializer, EpisodeSerializer
 from .models import Rss, Episode
+from .parser import parserview
 # Create your views here.
 
 
@@ -32,3 +33,10 @@ class EpisodeDetailView(APIView):
         serializer = EpisodeSerializer(episode)
         return Response(serializer.data)
 
+
+class ParseUrl(APIView):
+    def post(self, request):
+        url = request.data.get("rss_url")
+        # print(url)
+        parserview(url)
+        return Response("Podcast Updated", status=201)
