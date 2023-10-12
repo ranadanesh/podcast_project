@@ -21,11 +21,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class LikesSerializer(serializers.ModelSerializer):
-    model = Likes
-    fields = ['episode_id', 'user_id']
+    class Meta:
+        model = Likes
+        fields = ['episode_id']
 
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ('id', 'episode', 'user', 'text', 'created_at')
+        fields = ['episode', 'text']
