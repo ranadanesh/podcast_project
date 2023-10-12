@@ -30,6 +30,10 @@ class CustomAuthBackend(ModelBackend):
             return None
 
 
+def decode_jwt(token):
+    payload = jwt.decode(token, 'secret',  algorithms=['HS256'])
+
+    return payload
 
 
 
