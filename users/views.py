@@ -1,15 +1,23 @@
+from django.contrib.auth import authenticate
 from django.shortcuts import render
 from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.generics import ListCreateAPIView
 from rest_framework import status
 from .serializers import UserSerializer, LikesSerializer, CommentSerializer
+from .authentication import CustomAuthBackend, CustomJwtAuthentication
 from rest_framework.response import Response
 from .models import CustomUser, Likes, Comment
 from rest_framework.exceptions import AuthenticationFailed
 import jwt
 import datetime
+from django.core.cache import caches
+from uuid import uuid4
+from podcast.models import Episode
 # Create your views here.
+
+
+
 
 
 class RegisterView(APIView):
@@ -26,24 +34,41 @@ class LoginView(APIView):
         email = request.data['email']
         password = request.data['password']
 
-        user = CustomUser.objects.filter(email=email).first()
+        user = CustomAuthBackend().authenticate(request=request, email=email, password=password)
         if user is None:
             raise AuthenticationFailed('User Not Found Error!')
         if not user.check_password(password):
             raise AuthenticationFailed('Incorrect Password Error!')
 
-        payload = {
+        jti = uuid4().hex
+
+        access_payload = {
+            "token_type": "access",
             "id": user.id,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
-            "iat": datetime.datetime.utcnow()  # the day which this token is created
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=15),
+            "iat": datetime.datetime.utcnow(),  # the day which this token is created
+            "jti": jti
         }
 
-        token = jwt.encode(payload, 'secret', algorithm='HS256')
+        refresh_payload = {
+            "token_type": "refresh",
+            "id": user.id,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=10),
+            "iat": datetime.datetime.utcnow(),  # the day which this token is created
+            "jti": jti
+        }
+
+        access_token = jwt.encode(access_payload, 'secret', algorithm='HS256')
+        refresh_token = jwt.encode(refresh_payload, 'secret', algorithm='HS256')
+        caches['auth'].set(jti, user.id)
 
         response = Response()
+        response.data = {'access_token': access_token, 'refresh_token': refresh_token}
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
-        response.data = {'jwt': token}
+
+
+        # response.set_cookie(key='jwt', value=access_token, httponly=True)
+        # response.data = {'jwt': access_token}
 
         return response
 
@@ -83,18 +108,18 @@ class LikesView(APIView):
 
     serializer_class = LikesSerializer
     permission_classes = [permissions.IsAuthenticated,]
+    authentication_classes = [CustomJwtAuthentication]
 
     def post(self, request):
         user = request.user
         episode_id = request.data.get('episode_id')
-        like = Likes.objects.get(user=user, episode=episode_id)
-        if like:
+        episode = Episode.objects.get(id=episode_id)
+        like, created = Likes.objects.get_or_create(user=user, episode=episode)
+        if not created:
             like.delete()
             return Response({'detail': 'Unliked'}, status=status.HTTP_204_NO_CONTENT)
-        if not like:
-            user = user.id
-            Likes.objects.create(user, episode_id)
-            return Response({'detail': 'Liked'}, status=status.HTTP_200_OK)
+
+        return Response({'detail': 'Liked'}, status=status.HTTP_200_OK)
 
 
 class CommentListCreateView(ListCreateAPIView):
