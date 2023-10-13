@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
@@ -39,4 +40,4 @@ class ParseUrl(APIView):
         url = request.data.get("rss_url")
         # print(url)
         parserview(url)
-        return Response("Podcast Updated", status=201)
+        return Response("Podcast Updated", status=status.HTTP_200_OK)
