@@ -14,6 +14,8 @@ import datetime
 from django.core.cache import caches
 from uuid import uuid4
 from podcast.models import Episode
+# from .rabbitmq import publish
+from .rabbitmq import publish
 # Create your views here.
 
 
@@ -25,7 +27,9 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        user = serializer.create(serializer.validated_data)
+        body = {"message": f"user {user.id} registered"}
+        publish('registered', body)
         return Response(serializer.data)
 
 
@@ -33,8 +37,14 @@ class LoginView(APIView):
     def post(self, request):
         email = request.data['email']
         password = request.data['password']
+        username = email.split('@')[0]
 
         user = CustomAuthBackend().authenticate(request=request, email=email, password=password)
+        queue = 'user logged in'
+        body = {"message": f"user {user.id} logged in"}
+        publish(queue, body)
+
+
         if user is None:
             raise AuthenticationFailed('User Not Found Error!')
         if not user.check_password(password):
