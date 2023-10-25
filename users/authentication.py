@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from rest_framework import exceptions
 from rest_framework import authentication
 import jwt
-
 from django.conf import settings
 
 user_model = get_user_model()
