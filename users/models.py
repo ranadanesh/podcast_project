@@ -7,7 +7,7 @@ from podcast.models import Episode
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=150, null=True, blank=True)
+    username = models.CharField(max_length=150, unique=True)
     email = models.CharField(max_length=150, unique=True)
     password = models.CharField(max_length=200)
     image = models.ImageField(upload_to='media/user_img')
@@ -17,7 +17,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     REQUIRED_FIELDS = []
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ["email"]
 
     objects = CustomUserManager()
 
