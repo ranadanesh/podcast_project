@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 import environ
 env = environ.Env()
 environ.Env.read_env()
-SECRET_KEY = env("SECRET_KEY")
+# SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-74-57%5gdeau959g49yavr$1)@ux8(rxg1z32vas&0yc1ynvcr'
+SECRET_KEY = 'django-insecure-74-57%5gdeau959g49yavr$1)@ux8(rxg1z32vas&0yc1ynvcr'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -190,3 +190,7 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+
+
+# rabbitMQ setting
+BROKER_URL = 'amqp://guest:guest@localhost:5672//'
