@@ -11,6 +11,8 @@ services:
       - POSTGRES_PASSWORD=${PASSWORD}
     ports:
       - "5432:5432"
+    networks:
+      - main
   web:
     build: .
     command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
@@ -20,6 +22,8 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    networks:
+      - main
 
   celery:
     build: .
@@ -27,14 +31,32 @@ services:
       - .:/app
     command: celery -A config worker -l info
 
+    networks:
+      - main
+
+  celerybeat:
+    restart: always
+    build: .
+    volumes:
+      - ./src/:/src/
+    command: celery -A config beat -l INFO
+    networks:
+      - main
+    depends_on:
+      - celery
+
+
   redis:
     image: 'redis:alpine'
     ports:
       - '6379:6379'
+    networks:
+      - main
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: 'rabbitmq'
+    restart: always
     ports:
       - 5672:5672
       - 15672:15672
@@ -44,3 +66,9 @@ services:
 
     networks:
       - main
+
+    env_file:
+      - /podcast_project/.env
+
+networks:
+  main:
