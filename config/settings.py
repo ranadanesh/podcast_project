@@ -184,6 +184,12 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True  # IT allows the frontend to get the cookies for login
 
 
+LOGGING = {
+    "version": 1,  # it is the format version of dictConfig
+    "disable_existing_loggers": False,  # retain the default loggers
+}
+
+
 CELERY_BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
