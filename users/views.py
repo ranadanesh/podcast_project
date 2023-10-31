@@ -15,11 +15,8 @@ from django.core.cache import caches
 from uuid import uuid4
 from podcast.models import Episode
 # from .rabbitmq import publish
-from .rabbitmq import publish
+from .publisher import publish
 # Create your views here.
-
-
-
 
 
 class RegisterView(APIView):
@@ -43,7 +40,6 @@ class LoginView(APIView):
         queue = 'user logged in'
         body = {"message": f"user {user.id} logged in"}
         publish(queue, body)
-
 
         if user is None:
             raise AuthenticationFailed('User Not Found Error!')
@@ -74,8 +70,6 @@ class LoginView(APIView):
 
         response = Response()
         response.data = {'access_token': access_token, 'refresh_token': refresh_token}
-
-
 
         # response.set_cookie(key='jwt', value=access_token, httponly=True)
         # response.data = {'jwt': access_token}
