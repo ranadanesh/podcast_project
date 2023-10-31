@@ -22,3 +22,8 @@ def login_consume():
     channel.start_consuming()
 
 
+def register_callback(ch, method, properties, body):
+    data = json.loads(body)
+    user = CustomUser.objects.get(data['email'])
+    Notification.objects.create(message=body['message'], user=user)
+
