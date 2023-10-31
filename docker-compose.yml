@@ -3,25 +3,24 @@ version: '3'
 services:
   db:
     image: postgres:15-alpine
-    volumes:
-      - .:/var/lib/postgresql/data
+#    volumes:
+#      - .:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=postgres
-      - POSTGRES_USER=${USER}
-      - POSTGRES_PASSWORD=${PASSWORD}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=rana1234
     ports:
       - "5432:5432"
     networks:
       - main
   web:
     build: .
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
       - "8000:8000"
-    depends_on:
-      - db
+
     networks:
       - main
 
@@ -60,15 +59,15 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
-    volumes:
-      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
-      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+#    volumes:
+#      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+#      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
 
     networks:
       - main
 
     env_file:
-      - /podcast_project/.env
+      - .env
 
 networks:
   main:
