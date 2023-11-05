@@ -5,7 +5,7 @@ from celery import shared_task, Task
 import logging
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('elastic-logger')
 
 
 class BasePodcastTask(Task, ABC):
