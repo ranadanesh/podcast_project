@@ -16,6 +16,7 @@ from uuid import uuid4
 from podcast.models import Episode
 # from .rabbitmq import publish
 from .publisher import publish
+from django.utils.translation import gettext_lazy as _
 # Create your views here.
 
 
@@ -27,7 +28,7 @@ class RegisterView(APIView):
         user = serializer.create(serializer.validated_data)
         body = {"message": f"user {user.id} registered"}
         publish('registered', body)
-        return Response(serializer.data)
+        return Response(_('user registered successfully'), serializer.data)
 
 
 class LoginView(APIView):
@@ -42,9 +43,9 @@ class LoginView(APIView):
         publish(queue, body)
 
         if user is None:
-            raise AuthenticationFailed('User Not Found Error!')
+            raise AuthenticationFailed(_('User Not Found Error!'))
         if not user.check_password(password):
-            raise AuthenticationFailed('Incorrect Password Error!')
+            raise AuthenticationFailed(_('Incorrect Password Error!'))
 
         jti = uuid4().hex
 
@@ -82,13 +83,13 @@ class UserView(APIView):
         token = request.COOKIES.get('jwt')
 
         if not token:
-            return AuthenticationFailed('Not Authenticated!')
+            return AuthenticationFailed(_('Not Authenticated!'))
 
         try:
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
 
         except jwt.ExpiredSignatureError:
-            return AuthenticationFailed('Not Authenticated!')
+            return AuthenticationFailed(_('Not Authenticated!'))
 
         user = CustomUser.objects.filter(id=payload['id']).first()
         serializer = UserSerializer(user)
@@ -103,7 +104,7 @@ class LogoutView(APIView):
         response = Response()
         response.delete_cookie('jwt')
         response.data = {
-            'message': 'success'
+            'message': _('success')
         }
         return response
 
@@ -121,9 +122,9 @@ class LikesView(APIView):
         like, created = Likes.objects.get_or_create(user=user, episode=episode)
         if not created:
             like.delete()
-            return Response({'detail': 'Unliked'}, status=status.HTTP_204_NO_CONTENT)
+            return Response({'detail': _('Dislike')}, status=status.HTTP_204_NO_CONTENT)
 
-        return Response({'detail': 'Liked'}, status=status.HTTP_200_OK)
+        return Response({'detail': _('Like')}, status=status.HTTP_200_OK)
 
 
 class CommentListCreateView(ListCreateAPIView):
