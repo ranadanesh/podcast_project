@@ -3,23 +3,26 @@ version: '3'
 services:
   db:
     image: postgres:15-alpine
-    volumes:
-      - .:/var/lib/postgresql/data
+#    volumes:
+#      - .:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=postgres
-      - POSTGRES_USER=${USER}
-      - POSTGRES_PASSWORD=${PASSWORD}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=rana1234
     ports:
       - "5432:5432"
+    networks:
+      - main
   web:
     build: .
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
-    depends_on:
-      - db
+      - 8000:8000
+
+    networks:
+      - main
 
   celery:
     build: .
@@ -27,20 +30,81 @@ services:
       - .:/app
     command: celery -A config worker -l info
 
+    networks:
+      - main
+
+  celerybeat:
+    restart: always
+    build: .
+    volumes:
+      - .:/app
+    command: celery -A config beat -l INFO
+    networks:
+      - main
+    depends_on:
+      - celery
+
+
   redis:
-    image: 'redis:alpine'
-    ports:
-      - '6379:6379'
+    image: redis:alpine
+    networks:
+      - main
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: 'rabbitmq'
+    image: rabbitmq
+    container_name: rabbitmq
+    restart: always
     ports:
       - 5672:5672
       - 15672:15672
-    volumes:
-      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
-      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+#    volumes:
+#      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+#      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
 
     networks:
       - main
+
+
+
+  login_consume:
+    container_name: login_consume
+    command: python manage.py login_consume
+    build: .
+    networks:
+      - main
+    restart: always
+    depends_on:
+      - rabbitmq
+      - web
+    volumes:
+      - .:/app
+
+  elasticsearch:
+    image: elasticsearch:8.8.0
+    ports:
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+
+    networks:
+      - main
+    restart: always
+
+  kibana:
+    image: kibana:8.10.1
+    container_name: kibana
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    networks:
+      - main
+    restart: always
+    volumes:
+      - .:/app
+
+
+
+networks:
+  main:

@@ -36,3 +36,11 @@ class Comment(models.Model):
     episode = models.ForeignKey(Episode, on_delete=models.CASCADE)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Notification(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    message = models.TextField()
+
+    def __str__(self):
+        return f"{self.message}"

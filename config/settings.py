@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -48,12 +48,15 @@ INSTALLED_APPS = [
     'drf_api_logger',
     'podcast',
     'users',
+    'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl_drf',
 
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -61,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware',
+    'podcast.middleware.MiddlewareLog'
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -184,8 +188,32 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True  # IT allows the frontend to get the cookies for login
 
 
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+LOGGING = {
+    "version": 1,  # it is the format version of dictConfig
+    "disable_existing_loggers": False,  # retain the default loggers
+
+    "handlers": {
+            "elastic_handlers": {
+                "level": "INFO",
+                "class": "podcast.logger_handler.ElkHandler",
+            },
+        },
+    "loggers": {
+            "elastic-logger": {
+                "handlers": ["elastic_handlers"],
+                "level": "INFO",
+                'propagate': True
+            },
+        },
+}
+
+
+ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST')
+ELASTICSEARCH_PORT = os.environ.get('ELASTICSEARCH_PORT')
+
+
+CELERY_BROKER_URL = 'redis://redis:6379'
+CELERY_RESULT_BACKEND = 'redis://redis:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -193,4 +221,13 @@ CELERY_TIMEZONE = 'UTC'
 
 
 # rabbitMQ setting
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+BROKER_URL = 'amqp://guest:guest@rabbitmq:5672//'
+
+LOCALE_PATHS = (os.path.join(BASE_DIR, '../locale/'),)
+
+from django.utils.translation import gettext_lazy as _
+
+LANGUAGES = [
+    ('fa', _('Persian')),
+    ('en', _('English')),
+]
