@@ -19,7 +19,7 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - 8000:8000
 
     networks:
       - main
@@ -37,7 +37,7 @@ services:
     restart: always
     build: .
     volumes:
-      - ./src/:/src/
+      - .:/app
     command: celery -A config beat -l INFO
     networks:
       - main
@@ -46,15 +46,13 @@ services:
 
 
   redis:
-    image: 'redis:alpine'
-    ports:
-      - '6379:6379'
+    image: redis:alpine
     networks:
       - main
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: 'rabbitmq'
+    image: rabbitmq
+    container_name: rabbitmq
     restart: always
     ports:
       - 5672:5672
@@ -66,8 +64,47 @@ services:
     networks:
       - main
 
-    env_file:
-      - .env
+
+
+  login_consume:
+    container_name: login_consume
+    command: python manage.py login_consume
+    build: .
+    networks:
+      - main
+    restart: always
+    depends_on:
+      - rabbitmq
+      - web
+    volumes:
+      - .:/app
+
+  elasticsearch:
+    image: elasticsearch:8.8.0
+    ports:
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+
+    networks:
+      - main
+    restart: always
+
+  kibana:
+    image: kibana:8.10.1
+    container_name: kibana
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    networks:
+      - main
+    restart: always
+    volumes:
+      - .:/app
+
+
 
 networks:
   main:
